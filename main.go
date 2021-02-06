@@ -38,13 +38,23 @@ func (db database) read(w http.ResponseWriter, req *http.Request) {
 func (db database) create(w http.ResponseWriter, req *http.Request) {
 	color := req.URL.Query().Get("color")
 	hex := req.URL.Query().Get("hex")
+	if color == "" || hex == "" {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "`color` and `hex` parameters must be specified")
+		return
+	}
 	db[color] = hex
 	fmt.Fprintf(w, "created %s: %s\n", color, hex)
-
 }
 
 func (db database) delete(w http.ResponseWriter, req *http.Request) {
 	color := req.URL.Query().Get("color")
+	_, ok := db[color]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "no such color: %q\n", color)
+		return
+	}
 	delete(db, color)
 	fmt.Fprintf(w, "deleted %s\n", color)
 }
